@@ -99,6 +99,37 @@ class PokerGameSetup:
     def start_game(self):
         for player in self.players:
             print('Name: ', player.name.get(), ' Type: ', player.player_type.get())
+        PokerGame(self.root, self.mainframe, self.players)
+        
+
+class PokerGame:
+    def __init__(self, root, mainframe, players):
+        self.root = root
+        self.mainframe = mainframe
+        self.players = players
+
+        self.draw_game_table()
+    
+    def draw_game_table(self):
+        # Remove the current widgets
+        for widget in self.mainframe.winfo_children():
+            widget.grid_forget()
+            widget.destroy()
+
+        # Display the image
+        self.image = tk.PhotoImage(file="./resources/table.png")  # Replace with your image path
+        self.image_label = tk.Label(self.mainframe, image=self.image)
+        self.image_label.image = self.image  # Keep a reference to the image to prevent garbage collection
+        self.image_label.grid(row=0, columnspan=6)
+
+        # Display the player's info
+        for i, player in enumerate(self.players):
+            label = ttk.Label(self.mainframe, text=player.name.get())
+            label.grid(row=i+1, column=0)
+            
+            label_type = ttk.Label(self.mainframe, text=player.player_type.get())
+            label_type.grid(row=i+1, column=1)
+
 
 if __name__ == "__main__":
     root = tk.Tk()
