@@ -37,8 +37,8 @@ class PokerGameSetup:
         tk.Label(self.mainframe, text="Number of players:").grid(row=0, column=0)
         tk.Label(self.mainframe, textvariable=self.number_of_players).grid(row=0, column=2)
 
-        ttk.Button(self.mainframe, text="+", command=self.IncrementPlayers).grid(column=3, row=0, sticky=E)
-        ttk.Button(self.mainframe, text="-", command=self.DecrementPlayers).grid(column=1, row=0, sticky=W)
+        ttk.Button(self.mainframe, text="+", command=self.increment_players).grid(column=3, row=0, sticky=E)
+        ttk.Button(self.mainframe, text="-", command=self.decrease_players).grid(column=1, row=0, sticky=W)
         
         for child in self.mainframe.winfo_children():
             child.grid_configure(padx=5, pady=5)
@@ -84,13 +84,13 @@ class PokerGameSetup:
         self.start_button = ttk.Button(self.mainframe, text="Start Game", command=self.start_game)
         self.start_button.grid(column=3, row=self.number_of_players.get()+1, sticky=E)
 
-    def IncrementPlayers(self):
+    def increment_players(self):
         if self.number_of_players.get() == 6:
             return
         self.number_of_players.set(self.number_of_players.get() + 1)
         self.update_players()
     
-    def DecrementPlayers(self):
+    def decrease_players(self):
         if self.number_of_players.get() == 2:
             return
         self.number_of_players.set(self.number_of_players.get() - 1)
