@@ -25,9 +25,6 @@ class PokerGameSetup:
         self.number_of_players.set(2)
         
         self.players = []
-        self.player_entries = []
-        self.player_actions = []
-        self.player_name_labels = []
         
         self.create_widgets()
         
@@ -36,7 +33,6 @@ class PokerGameSetup:
 
         self.update_players()
 
-        
     def create_widgets(self):
         tk.Label(self.mainframe, text="Number of players:").grid(row=0, column=0)
         tk.Label(self.mainframe, textvariable=self.number_of_players).grid(row=0, column=2)
@@ -58,22 +54,18 @@ class PokerGameSetup:
         self.start_button.destroy()
 
         self.players = []
-        self.player_entries = []
-        self.player_actions = []
-        self.player_name_labels = []
+
         
         # Create new player widgets
         for i in range(self.number_of_players.get()):
             label = ttk.Label(self.mainframe, text="Player Name:")
             label.grid(row=i+1, column=0)
-            self.player_name_labels.append(label)
-
+            
             name = tk.StringVar()
             name.set("Player " + str(i+1))
             entry = ttk.Entry(self.mainframe, textvariable=name)
             entry.grid(row=i+1, column=1)
-            self.player_entries.append(entry)
-            
+
             player_type = tk.StringVar()
             type_menu = ttk.Combobox(self.mainframe, values=["Human", "AI"], textvariable=player_type)
             if i == 0:
@@ -81,7 +73,6 @@ class PokerGameSetup:
             else:
                 type_menu.set("AI")
             type_menu.grid(row=i+1, column=3)
-            self.player_actions.append(type_menu)
             
             player_objects = {
                 "name_label": label,
