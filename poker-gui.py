@@ -108,6 +108,9 @@ class PokerGame:
         self.mainframe = mainframe
         self.players = players
 
+        self.table_image = tk.PhotoImage(file="./resources/table.png")
+        self.card_back_image = tk.PhotoImage(file="./resources/card_back.png")
+
         self.draw_game_table()
     
     def draw_game_table(self):
@@ -115,21 +118,54 @@ class PokerGame:
         for widget in self.mainframe.winfo_children():
             widget.grid_forget()
             widget.destroy()
+        
+        # Display the table
+        self.image_label = tk.Label(self.mainframe, image=self.table_image)
+        self.image_label.image = self.table_image  # Keep a reference to the image to prevent garbage collection
+        self.image_label.grid(row=1, column=1, columnspan=5, rowspan=4, padx=5, pady=5)
 
-        # Display the image
-        self.image = tk.PhotoImage(file="./resources/table.png")  # Replace with your image path
-        self.image_label = tk.Label(self.mainframe, image=self.image)
-        self.image_label.image = self.image  # Keep a reference to the image to prevent garbage collection
-        self.image_label.grid(row=0, columnspan=6)
+        locations = [
+            ((1, 0), 2),
+            ((1, 0), 3),
+            ((1, 0), 4),
+            ((4, 5), 2),
+            ((4, 5), 3),
+            ((4, 5), 4)
+        ]
 
-        # Display the player's info
+        bold_font = ("Arial", 10, "bold")
+
         for i, player in enumerate(self.players):
-            label = ttk.Label(self.mainframe, text=player.name.get())
-            label.grid(row=i+1, column=0)
-            
-            label_type = ttk.Label(self.mainframe, text=player.player_type.get())
-            label_type.grid(row=i+1, column=1)
+            player.image_label = tk.Label(self.mainframe, image=self.card_back_image)
+            player.image_label.image = self.card_back_image  # Keep a reference to the image to prevent garbage collection
+            player.image_label.grid(row=locations[i][0][0], column=locations[i][1], columnspan=1)
+            player.name_label = tk.Label(self.mainframe, text=player.name.get(), font=bold_font)
+            player.name_label.grid(row=locations[i][0][1], column=locations[i][1], columnspan=1, padx=5, pady=5)
 
+            if player.player_type.get() == "AI":
+                player.name_label.configure(foreground="red")
+
+        self.players[0].name_label.configure(background="yellow")
+
+        self.call_button = ttk.Button(self.mainframe, text="Call", command=self.blank)
+        self.call_button.grid(column=2, row=6, sticky=W, columnspan=1)
+
+        self.raise_button = ttk.Button(self.mainframe, text="Raise", command=self.blank)
+        self.raise_button.grid(column=3, row=6, sticky=W, columnspan=1)
+
+        self.fold_button = ttk.Button(self.mainframe, text="Fold", command=self.blank)
+        self.fold_button.grid(column=4, row=6, sticky=W, columnspan=1)
+
+        self.raise_amt = IntVar()
+        self.raise_amt.set(5)
+        self.raise_box = ttk.Spinbox(self.mainframe, from_=self.raise_amt.get(), to=100, increment=5, textvariable=self.raise_amt)
+        self.raise_box.grid(column=3, row=7, sticky=W, columnspan=1)
+
+        self.fold_button = ttk.Button(self.mainframe, text="Quit", command=self.blank)
+        self.fold_button.grid(column=4, row=7, sticky=W, pady=5)
+    
+    def blank(self):
+        pass
 
 if __name__ == "__main__":
     root = tk.Tk()
