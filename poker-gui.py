@@ -108,6 +108,8 @@ class PokerGame:
         self.mainframe = mainframe
         self.players = players
 
+        self.pot = 0
+
         self.table_image = tk.PhotoImage(file="./resources/table.png")
         self.card_back_image = tk.PhotoImage(file="./resources/card_back.png")
 
@@ -124,6 +126,10 @@ class PokerGame:
         self.image_label.image = self.table_image  # Keep a reference to the image to prevent garbage collection
         self.image_label.grid(row=1, column=1, columnspan=5, rowspan=4, padx=5, pady=5)
 
+        # Locations of players in format:
+        #   *locations[i][0][0] - Row location for player image
+        #   *locations[i][0][1] - Row location for player name
+        #   *locations[i][1] - Column location for player image and name
         locations = [
             ((1, 0), 2),
             ((1, 0), 3),
@@ -140,29 +146,48 @@ class PokerGame:
             player.image_label.image = self.card_back_image  # Keep a reference to the image to prevent garbage collection
             player.image_label.grid(row=locations[i][0][0], column=locations[i][1], columnspan=1)
             player.name_label = tk.Label(self.mainframe, text=player.name.get(), font=bold_font)
-            player.name_label.grid(row=locations[i][0][1], column=locations[i][1], columnspan=1, padx=5, pady=5)
+            player.name_label.grid(row=locations[i][0][1], column=locations[i][1], columnspan=1, padx=10, pady=10)
 
             if player.player_type.get() == "AI":
                 player.name_label.configure(foreground="red")
 
         self.players[0].name_label.configure(background="yellow")
 
+        pot_label = tk.Label(self.mainframe, text=f'Current pot is: ${self.pot}')
+        pot_label.grid(row=6, column=3, columnspan=1, padx=10, pady=10)
+
+
         self.call_button = ttk.Button(self.mainframe, text="Call", command=self.blank)
-        self.call_button.grid(column=2, row=6, sticky=W, columnspan=1)
+        self.call_button.grid(row=7,  column=2, columnspan=1)
 
         self.raise_button = ttk.Button(self.mainframe, text="Raise", command=self.blank)
-        self.raise_button.grid(column=3, row=6, sticky=W, columnspan=1)
+        self.raise_button.grid(row=7, column=3, columnspan=1)
 
         self.fold_button = ttk.Button(self.mainframe, text="Fold", command=self.blank)
-        self.fold_button.grid(column=4, row=6, sticky=W, columnspan=1)
+        self.fold_button.grid(row=7, column=4, columnspan=1)
 
         self.raise_amt = IntVar()
         self.raise_amt.set(5)
         self.raise_box = ttk.Spinbox(self.mainframe, from_=self.raise_amt.get(), to=100, increment=5, textvariable=self.raise_amt)
-        self.raise_box.grid(column=3, row=7, sticky=W, columnspan=1)
+        self.raise_box.grid(row=8, column=3, columnspan=1)
 
-        self.fold_button = ttk.Button(self.mainframe, text="Quit", command=self.blank)
-        self.fold_button.grid(column=4, row=7, sticky=W, pady=5)
+        self.quit_button = ttk.Button(self.mainframe, text="Quit", command=self.quit)
+        self.quit_button.grid(row=8, column=4, pady=5)
+
+        self.card_1 = tk.PhotoImage(file="./resources/Kh.png")
+        self.card_2 = tk.PhotoImage(file="./resources/Ks.png")
+
+        card1_label = tk.Label(self.mainframe, image=self.card_1)
+        card1_label.image = self.card_1  
+        card1_label.grid(row=8, column=2, sticky=W)
+
+        card2_label = tk.Label(self.mainframe, image=self.card_2)
+        card2_label.image = self.card_2
+        card2_label.grid(row=8, column=2)
+
+
+    def quit(self):
+        self.root.quit()
     
     def blank(self):
         pass
