@@ -5,10 +5,11 @@ import random
 
 
 class Player:
-    def __init__(self, name, player_type, objects):
+    def __init__(self, name, player_type, objects, bank=100):
         self.name = name
         self.player_type = player_type
         self.tk_objects = objects
+        self.bank = bank
 
 
 class PokerGameSetup:
@@ -145,19 +146,28 @@ class PokerGame:
             player.image_label = tk.Label(self.mainframe, image=self.card_back_image)
             player.image_label.image = self.card_back_image  # Keep a reference to the image to prevent garbage collection
             player.image_label.grid(row=locations[i][0][0], column=locations[i][1], columnspan=1)
-            player.name_label = tk.Label(self.mainframe, text=player.name.get(), font=bold_font)
+
+            player.name_label = tk.Label(self.mainframe, text=f'{player.name.get()}\n${player.bank}', font=bold_font)
             player.name_label.grid(row=locations[i][0][1], column=locations[i][1], columnspan=1, padx=10, pady=10)
 
+          
             if player.player_type.get() == "AI":
                 player.name_label.configure(foreground="red")
 
         self.players[0].name_label.configure(background="yellow")
 
+
+        dealer_label = tk.Label(self.mainframe, text=f'Dealer is: {self.players[0].name.get()}')
+        dealer_label.grid(row=6, column=4, columnspan=1, padx=10, pady=10)
+        
+        current_player_label = tk.Label(self.mainframe, text=f'Playing: {self.players[0].name.get()}')
+        current_player_label.grid(row=6, column=2, columnspan=1, padx=10, pady=10)
+        
+
         pot_label = tk.Label(self.mainframe, text=f'Current pot is: ${self.pot}')
         pot_label.grid(row=6, column=3, columnspan=1, padx=10, pady=10)
 
-
-        self.call_button = ttk.Button(self.mainframe, text="Call", command=self.blank)
+        self.call_button = ttk.Button(self.mainframe, text="Call/Check", command=self.blank)
         self.call_button.grid(row=7,  column=2, columnspan=1)
 
         self.raise_button = ttk.Button(self.mainframe, text="Raise", command=self.blank)
@@ -184,6 +194,30 @@ class PokerGame:
         card2_label = tk.Label(self.mainframe, image=self.card_2)
         card2_label.image = self.card_2
         card2_label.grid(row=8, column=2)
+
+        self.flop1_label = tk.Label(self.mainframe, image=self.card_back_image)
+        self.flop1_label.image = self.card_back_image
+        self.flop1_label.grid(row=3, column=2, sticky=(E, N))
+
+        self.flop2_label = tk.Label(self.mainframe, image=self.card_back_image)
+        self.flop2_label.image = self.card_back_image
+        self.flop2_label.grid(row=3, column=3, columnspan=1, sticky=(N))
+
+        self.flop3_label = tk.Label(self.mainframe, image=self.card_back_image)
+        self.flop3_label.image = self.card_back_image
+        self.flop3_label.grid(row=3, column=4, columnspan=1, sticky=(W, N))
+
+
+        '''turn_card_label = tk.Label(self.mainframe, image=self.card_back_image)
+        turn_card_label.image = self.card_back_image
+        turn_card_label.grid(row=3, column=4, columnspan=1, sticky=(W, N))
+
+        river_card_label = tk.Label(self.mainframe, image=self.card_back_image)
+        river_card_label.image = self.card_back_image
+        river_card_label.grid(row=3, column=5, columnspan=1, sticky=(W, N))'''
+
+        
+
 
 
     def quit(self):
