@@ -10,7 +10,8 @@ class Player:
         self.player_type = player_type
         self.tk_objects = objects
         self.bank = bank
-
+        self.hand1 = None
+        self.curr_bet = 0
 
 class PokerGameSetup:
     def __init__(self, root):
@@ -86,7 +87,7 @@ class PokerGameSetup:
         self.start_button.grid(column=3, row=self.number_of_players.get()+1, sticky=E)
 
     def increment_players(self):
-        if self.number_of_players.get() == 6:
+        if self.number_of_players.get() == 2: #Limiting the players to 2 because of 
             return
         self.number_of_players.set(self.number_of_players.get() + 1)
         self.update_players()
@@ -107,16 +108,16 @@ class PokerGame:
     def __init__(self, root, mainframe, players):
         self.root = root
         self.mainframe = mainframe
-        self.players = players
+        [self.player1, self.player2] = players
 
         self.pot = 0
 
         self.table_image = tk.PhotoImage(file="./resources/table.png")
         self.card_back_image = tk.PhotoImage(file="./resources/card_back.png")
 
-        self.draw_game_table()
+        self.start_game()
     
-    def draw_game_table(self):
+    def start_game(self):
         # Remove the current widgets
         for widget in self.mainframe.winfo_children():
             widget.grid_forget()
@@ -127,103 +128,249 @@ class PokerGame:
         self.image_label.image = self.table_image  # Keep a reference to the image to prevent garbage collection
         self.image_label.grid(row=1, column=1, columnspan=5, rowspan=4, padx=5, pady=5)
 
-        # Locations of players in format:
-        #   *locations[i][0][0] - Row location for player image
-        #   *locations[i][0][1] - Row location for player name
-        #   *locations[i][1] - Column location for player image and name
-        locations = [
-            ((1, 0), 2),
-            ((1, 0), 3),
-            ((1, 0), 4),
-            ((4, 5), 2),
-            ((4, 5), 3),
-            ((4, 5), 4)
-        ]
-
-        bold_font = ("Arial", 10, "bold")
-
-        for i, player in enumerate(self.players):
-            player.image_label = tk.Label(self.mainframe, image=self.card_back_image)
-            player.image_label.image = self.card_back_image  # Keep a reference to the image to prevent garbage collection
-            player.image_label.grid(row=locations[i][0][0], column=locations[i][1], columnspan=1)
-
-            player.name_label = tk.Label(self.mainframe, text=f'{player.name.get()}\n${player.bank}', font=bold_font)
-            player.name_label.grid(row=locations[i][0][1], column=locations[i][1], columnspan=1, padx=10, pady=10)
-
-          
-            if player.player_type.get() == "AI":
-                player.name_label.configure(foreground="red")
-
-        self.players[0].name_label.configure(background="yellow")
-
-
-        dealer_label = tk.Label(self.mainframe, text=f'Dealer is: {self.players[0].name.get()}')
-        dealer_label.grid(row=6, column=4, columnspan=1, padx=10, pady=10)
-        
-        current_player_label = tk.Label(self.mainframe, text=f'Playing: {self.players[0].name.get()}')
-        current_player_label.grid(row=6, column=2, columnspan=1, padx=10, pady=10)
-        
-
-        pot_label = tk.Label(self.mainframe, text=f'Current pot is: ${self.pot}')
-        pot_label.grid(row=6, column=3, columnspan=1, padx=10, pady=10)
-
-        self.call_button = ttk.Button(self.mainframe, text="Call/Check", command=self.blank)
+        self.call_button_var = tk.StringVar(value="Check")
+        self.call_button = ttk.Button(self.mainframe, textvariable=self.call_button_var, command=self.check)
         self.call_button.grid(row=7,  column=2, columnspan=1)
 
-        self.raise_button = ttk.Button(self.mainframe, text="Raise", command=self.blank)
+        self.raise_button = ttk.Button(self.mainframe, text="Raise", command=self.raise_bet)
         self.raise_button.grid(row=7, column=3, columnspan=1)
-
-        self.fold_button = ttk.Button(self.mainframe, text="Fold", command=self.blank)
-        self.fold_button.grid(row=7, column=4, columnspan=1)
 
         self.raise_amt = IntVar()
         self.raise_amt.set(5)
         self.raise_box = ttk.Spinbox(self.mainframe, from_=self.raise_amt.get(), to=100, increment=5, textvariable=self.raise_amt)
         self.raise_box.grid(row=8, column=3, columnspan=1)
 
+        self.fold_button = ttk.Button(self.mainframe, text="Fold", command=self.fold)
+        self.fold_button.grid(row=7, column=4, columnspan=1)
+
+        
+        bold_font = ("Arial", 10, "bold")
+
+        self.player1_name_label_var = tk.StringVar()
+        self.player1_bet_label_var = tk.StringVar()
+        self.player2_name_label_var = tk.StringVar()
+        self.player2_bet_label_var = tk.StringVar()
+        self.pot_var = tk.StringVar()
+
+        #Entry bets
+        self.player1_bet(5)
+        self.player2_bet(5)
+
+        self.player1.image_label = tk.Label(self.mainframe, image=self.card_back_image)
+        self.player1.image_label.image = self.card_back_image  # Keep a reference to the image to prevent garbage collection
+        self.player1.image_label.grid(row=4, column=3, columnspan=1)
+        
+        self.player1.name_label = tk.Label(self.mainframe, textvariable=self.player1_name_label_var, font=bold_font)
+        self.player1.name_label.grid(row=5, column=3, columnspan=1, padx=10, pady=10)
+        
+        if self.player1.player_type.get() == "AI":
+            self.player1.name_label.configure(foreground="red")
+            
+        self.player2.image_label = tk.Label(self.mainframe, image=self.card_back_image)
+        self.player2.image_label.image = self.card_back_image  
+        self.player2.image_label.grid(row=1, column=3, columnspan=1)
+    
+        self.player2.name_label = tk.Label(self.mainframe, textvariable=self.player2_name_label_var, font=bold_font)
+        self.player2.name_label.grid(row=0, column=3, columnspan=1, padx=10, pady=10)
+
+        if self.player2.player_type.get() == "AI":
+            self.player2.name_label.configure(foreground="red")
+                
+        pot_label = tk.Label(self.mainframe, textvariable=self.pot_var)
+        pot_label.grid(row=6, column=3, columnspan=1, padx=10, pady=10)
+        
+        player1_bet_label = tk.Label(self.mainframe, textvariable=self.player1_bet_label_var)
+        player1_bet_label.grid(row=4, column=2, columnspan=1, padx=10, pady=10, sticky=E)
+
+        player2_bet_label = tk.Label(self.mainframe, textvariable=self.player2_bet_label_var)
+        player2_bet_label.grid(row=1, column=4, columnspan=1, padx=10, pady=10, sticky=W)
+
         self.quit_button = ttk.Button(self.mainframe, text="Quit", command=self.quit)
         self.quit_button.grid(row=8, column=4, pady=5)
 
-        self.card_1 = tk.PhotoImage(file="./resources/Kh.png")
-        self.card_2 = tk.PhotoImage(file="./resources/Ks.png")
+        self.deal_cards()
+        
+        self.card_1 = tk.PhotoImage(file=f"./resources/deck/{self.player1.hand1}.png")
 
-        card1_label = tk.Label(self.mainframe, image=self.card_1)
-        card1_label.image = self.card_1  
-        card1_label.grid(row=8, column=2, sticky=W)
+        self.card1_label = tk.Label(self.mainframe, image=self.card_1)
+        self.card1_label.image = self.card_1  
+        self.card1_label.grid(row=8, column=2, sticky=W)
 
-        card2_label = tk.Label(self.mainframe, image=self.card_2)
-        card2_label.image = self.card_2
-        card2_label.grid(row=8, column=2)
+        self.community_card_label = tk.Label(self.mainframe, image=self.card_back_image)
+        self.community_card_label.image = self.card_back_image
+        self.community_card_label.grid(row=3, column=3, columnspan=1, sticky=(N))
 
-        self.flop1_label = tk.Label(self.mainframe, image=self.card_back_image)
-        self.flop1_label.image = self.card_back_image
-        self.flop1_label.grid(row=3, column=2, sticky=(E, N))
+        self.round = 1
+        self.sub_round = 1
+        self.update_round()
 
-        self.flop2_label = tk.Label(self.mainframe, image=self.card_back_image)
-        self.flop2_label.image = self.card_back_image
-        self.flop2_label.grid(row=3, column=3, columnspan=1, sticky=(N))
+    def update_round(self):
+        #Player 1's turn
+        if self.sub_round % 2 == 1:
+            self.player1.name_label.configure(background="yellow")
+            self.player2.name_label.configure(background=self.player2.name_label.master["bg"])
 
-        self.flop3_label = tk.Label(self.mainframe, image=self.card_back_image)
-        self.flop3_label.image = self.card_back_image
-        self.flop3_label.grid(row=3, column=4, columnspan=1, sticky=(W, N))
+            self.card1 = tk.PhotoImage(file=f"./resources/deck/{self.player1.hand1}.png")
+            self.card1_label.configure(image=self.card1)
+            #self.card1_label.image = self.card1
+            if self.player1.curr_bet < self.player2.curr_bet:
+                self.call_button_var.set(f"Call ${abs(self.player2.curr_bet - self.player1.curr_bet)}")
+                self.call_button.configure(command=self.call)
+            else:
+                self.call_button_var.set("Check")
+                self.call_button.configure(command=self.check)
 
+        #Player 2's turn
+        else:
+            self.player1.name_label.configure(background=self.player1.name_label.master["bg"])
+            self.player2.name_label.configure(background="yellow")
 
-        '''turn_card_label = tk.Label(self.mainframe, image=self.card_back_image)
-        turn_card_label.image = self.card_back_image
-        turn_card_label.grid(row=3, column=4, columnspan=1, sticky=(W, N))
+            self.card1 = tk.PhotoImage(file=f"./resources/deck/{self.player2.hand1}.png")
+            self.card1_label.configure(image=self.card1)
+            #self.card1_label.image = self.card1
+            if self.player2.curr_bet < self.player1.curr_bet:
+                self.call_button_var.set(f"Call ${abs(self.player2.curr_bet - self.player1.curr_bet)}")
+                self.call_button.configure(command=self.call)
+            else:
+                self.call_button_var.set("Check")
+                self.call_button.configure(command=self.call)
 
-        river_card_label = tk.Label(self.mainframe, image=self.card_back_image)
-        river_card_label.image = self.card_back_image
-        river_card_label.grid(row=3, column=5, columnspan=1, sticky=(W, N))'''
 
         
+        if self.sub_round > 4:
+            self.round += 1
+            self.sub_round = 1
+        
+        if self.round == 2:
+            #Show community card
+            self.community_card_label.configure(image=self.community_card_front)
+            pass
+        
+        if self.round == 3:
+            #End game, collect profits
+            self.end_game()
+            pass
 
 
+    def end_game(self):
+        print(self.player1.hand1)
+        print(self.player2.hand1)
+        if self.player1.hand1[:1] == self.community_card[:1]:
+            #Player 1 wins
+            print('player 1 wins')
+            self.player1.bank += self.pot
+        
+        if self.player2.hand1[:1] == self.community_card[:1]:
+            #Player 2 wins
+            print('player 2 wins')
+            self.player2.bank += self.pot
+        
+        #Determine higher ranking card
+        symbols = ['J', 'Q', 'K', 'A']
+        player1_rank = symbols.index(self.player1.hand1[:1])
+        player2_rank = symbols.index(self.player2.hand1[:1])
+        if player1_rank > player2_rank:
+            print('player 1 wins')
+            self.player1.bank += self.pot
+        if player2_rank > player1_rank:
+            print('player 2 wins')
+            self.player2.bank += self.pot
+        else:
+            print('TIE!')
+            self.player1.bank += self.pot//2
+            self.player2.bank += self.pot//2
 
+        self.player1.curr_bet = 0
+        self.player2.curr_bet = 0
+        self.pot = 0
+        self.start_game()
+
+    def player1_bet(self, amt):
+        self.player1.bank -= amt
+        self.pot += amt
+        self.player1.curr_bet += amt
+
+        self.player1_name_label_var.set(f'{self.player1.name.get()}\n${self.player1.bank}')
+        self.player1_bet_label_var.set(f'{self.player1.name.get()} bet: ${self.player1.curr_bet}')
+        self.pot_var.set(f'Current pot is: ${self.pot}')
+
+    def player2_bet(self, amt):
+        self.player2.bank -= amt
+        self.pot += amt
+        self.player2.curr_bet += amt
+
+        self.player2_name_label_var.set(f'{self.player2.name.get()}\n${self.player2.bank}')
+        self.player2_bet_label_var.set(f'{self.player2.name.get()} bet: ${self.player2.curr_bet}')
+        self.pot_var.set(f'Current pot is: ${self.pot}')
+
+    def deal_cards(self):
+        #suits = ['c', 'd', 'h', 's']
+        #symbols = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
+
+        #Limiting to only 4 cards of 2 suits because of leduc poker
+        suits = ['h', 's']
+        symbols = ['J', 'Q', 'K', 'A']
+
+        deck = []
+        for symbol in symbols:
+            for suit in suits:
+                deck.append(symbol + suit)
+        
+        random.shuffle(deck)
+
+        self.player1.hand1 = deck.pop()
+        self.player2.hand1 = deck.pop()
+        
+        self.community_card = deck.pop()
+        self.community_card_front = tk.PhotoImage(file=f"./resources/deck/{self.community_card}.png")
+        
     def quit(self):
         self.root.quit()
     
+    def raise_bet(self):
+        if self.sub_round % 2 == 1:
+            #Player 1 raised
+            self.player1_bet(self.raise_amt.get())
+        else:
+            #Player 2 raised
+            self.player2_bet(self.raise_amt.get())
+        self.sub_round += 1
+        self.update_round()
+
+    def check(self):
+        self.sub_round+=1
+        self.update_round()
+    
+    def call(self):
+        if self.sub_round % 2 == 1:
+            #Player 1 called
+            self.player1_bet(abs(self.player2.curr_bet - self.player1.curr_bet))
+        else:
+            #Player 2 called
+            self.player2_bet(abs(self.player2.curr_bet - self.player1.curr_bet))
+        self.sub_round += 1
+        self.update_round()
+
+    def fold(self):
+        if self.sub_round % 2 == 1:
+            #Player 1 folded
+            self.player1.curr_bet = 0
+            print('player 2 wins')
+            self.player2.bank += self.pot
+        else:
+            #Player 2 folded
+            self.player2.curr_bet = 0
+            print('player 1 wins')
+            self.player1.bank += self.pot
+        
+        self.player1.curr_bet = 0
+        self.player2.curr_bet = 0
+        self.pot = 0
+        self.start_game()
+        
     def blank(self):
+        self.sub_round+=1
+        self.update_round()
         pass
 
 if __name__ == "__main__":
