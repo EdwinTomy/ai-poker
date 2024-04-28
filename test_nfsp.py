@@ -67,7 +67,7 @@ def main():
         print("Creating game: " + param_dict["game_name"])
         game = pyspiel.load_game(param_dict["game_name"])
 
-        player_type = {0: int(input("Select 0 for AI or 1 for human")), 1: int(input("Select 0 for AI or 1 for human"))}
+        player_type = {0: int(input("Select 0 for AI, 1 for human, 2 for random")), 1: int(input("Select 0 for AI, 1 for human, 2 random"))}
 
         # Create the initial state
         state = game.new_initial_state()
@@ -113,6 +113,13 @@ def main():
                     ans = int(input())
                     state.apply_action(ans)
 
+                elif player_type[state.current_player()] == 2:
+                    action = random.choice(state.legal_actions(state.current_player()))
+                    action_string = state.action_to_string(state.current_player(), action)
+                    print("Player ", state.current_player(), ", randomly sampled action: ",
+                          action_string)
+                    state.apply_action(action)
+
                 else:
                     # Decision node: sample action for the single current player
                     action = random.choice(state.legal_actions(state.current_player()))
@@ -133,4 +140,5 @@ def main():
 
 
 if __name__ == "__main__":
+    f
     main()
