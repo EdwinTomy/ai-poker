@@ -250,7 +250,60 @@ class PokerGame:
             #End game, collect profits
             self.end_game()
             pass
+        
+        if self.sub_round % 2 == 1:
+            player_type = self.player1.player_type.get()
+            #Check if player 1 is AI
+            if player_type == "AI":
+                # Define the choices and their corresponding probabilities
+                choices = [0, 1, 2]
+                probabilities = [0.47, 0.47, 0.05]
 
+                # Use random.choices() to make the random selection
+                choice = random.choices(choices, probabilities)[0]
+                if choice == 0:
+                    #Call
+                    if self.player1.curr_bet < self.player2.curr_bet:
+                        self.call()
+                    #Check
+                    else:
+                        self.check()
+
+                if choice == 1:
+                    #Raise
+                    self.raise_amt.set(5)
+                    self.raise_bet()
+                    
+                if choice == 2:
+                    #Fold  
+                    self.fold()
+                    pass
+        else:
+            #Check if player 2 is AI
+            player_type = self.player2.player_type.get()
+            if player_type == "AI":
+                # Define the choices and their corresponding probabilities
+                choices = [0, 1, 2]
+                probabilities = [0.47, 0.47, 0.05]
+
+                # Use random.choices() to make the random selection
+                choice = random.choices(choices, probabilities)[0]
+                if choice == 0:
+                    #Call
+                    if self.player2.curr_bet < self.player1.curr_bet:
+                        self.call()
+                    #Check
+                    else:
+                        self.check()
+
+                if choice == 1:
+                    #Raise
+                    self.raise_amt.set(5)
+                    self.raise_bet()
+                    
+                if choice == 2:
+                    #Fold  
+                    self.fold()
 
     def end_game(self):
         print(self.player1.hand1)
@@ -371,7 +424,7 @@ class PokerGame:
     def blank(self):
         self.sub_round+=1
         self.update_round()
-        pass
+        
 
 if __name__ == "__main__":
     root = tk.Tk()
