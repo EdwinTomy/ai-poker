@@ -3,6 +3,9 @@ from tkinter import *
 from tkinter import ttk
 import random
 
+from train_tf_model import *
+from run_with_terminal import *
+
 
 class Player:
     def __init__(self, name, player_type, objects, bank=100):
