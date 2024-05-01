@@ -1,5 +1,5 @@
 import tensorflow.compat.v1 as tf
-from train_nfsp import *
+from train_tf_model import *
 
 import random
 import numpy as np
@@ -67,7 +67,8 @@ def main():
         print("Creating game: " + param_dict["game_name"])
         game = pyspiel.load_game(param_dict["game_name"])
 
-        player_type = {0: int(input("Select 0 for AI, 1 for human, 2 for random")), 1: int(input("Select 0 for AI, 1 for human, 2 random"))}
+        player_type = {0: int(input("Select 0 for AI, 1 for human, 2 for random")),
+                       1: int(input("Select 0 for AI, 1 for human, 2 random"))}
 
         # Create the initial state
         state = game.new_initial_state()
@@ -140,5 +141,4 @@ def main():
 
 
 if __name__ == "__main__":
-    f
     main()
